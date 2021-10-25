@@ -1,9 +1,7 @@
 const { Client, MessageMedia } = require('whatsapp-web.js');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const socketIO = require('socket.io');
 const qrcode = require('qrcode');
-const http = require('http');
 const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const fileUpload = require('express-fileupload');
@@ -13,8 +11,8 @@ const mime = require('mime-types');
 const port = process.env.PORT || 8000;
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -117,25 +115,25 @@ client.on('message', msg => {
 client.initialize();
 
 // Socket IO
-io.on('connection', function(socket) {
-  socket.emit('message', 'Connecting...');
+io.sockets.on('connection', function(socket) {
+  io.emit('message', 'Connecting...');
 
   client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
     qrcode.toDataURL(qr, (err, url) => {
-      socket.emit('qr', url);
-      socket.emit('message', 'QR Code received, scan please!');
+      io.emit('qr', url);
+      io.emit('message', 'QR Code received, scan please!');
     });
   });
 
   client.on('ready', () => {
-    socket.emit('ready', 'Whatsapp is ready!');
-    socket.emit('message', 'Whatsapp is ready!');
+    io.emit('ready', 'Whatsapp is ready!');
+    io.emit('message', 'Whatsapp is ready!');
   });
 
   client.on('authenticated', (session) => {
-    socket.emit('authenticated', 'Whatsapp is authenticated!');
-    socket.emit('message', 'Whatsapp is authenticated!');
+    io.emit('authenticated', 'Whatsapp is authenticated!');
+    io.emit('message', 'Whatsapp is authenticated!');
     console.log('AUTHENTICATED', session);
     sessionCfg = session;
     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function(err) {
@@ -146,11 +144,11 @@ io.on('connection', function(socket) {
   });
 
   client.on('auth_failure', function(session) {
-    socket.emit('message', 'Auth failure, restarting...');
+    io.emit('message', 'Auth failure, restarting...');
   });
 
   client.on('disconnected', (reason) => {
-    socket.emit('message', 'Whatsapp is disconnected!');
+    io.emit('message', 'Whatsapp is disconnected!');
     fs.unlinkSync(SESSION_FILE_PATH, function(err) {
         if(err) return console.log(err);
         console.log('Session file deleted!');
@@ -348,6 +346,6 @@ app.post('/clear-message', [
   })
 });
 
-server.listen(port, function() {
-  console.log('App running on *: ' + port);
+const server = http.listen(port, function() {
+  console.log(`listening on Port :${port}`);
 });
