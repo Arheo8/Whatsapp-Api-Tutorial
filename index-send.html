@@ -15,13 +15,13 @@
             <h3>Send Message</h3>
             <div class="form-group">
                 <label for="sender">Sender id:</label>
-                <select id="sender">
-                <option value="">-- Select --</option>
-                <option value="123">123</option>
+                <select id="sender" name="sender" type="sender">
+                <option name="sender" type="sender" value="">-- Select --</option>
+                <option name="sender" type="sender" value="123">123</option>
                  </select>
             </div>
             <div class="form-group">
-                <label for="sender">Number:</label>
+                <label for="number">Number:</label>
                 <input type="number" name="number" class="form-control" />
             </div>
             <div class="form-group">
@@ -29,6 +29,8 @@
                 <input type="message" name="message" class="form-control" />
             </div>
             <input type="submit" name="" value="Send" />
+            <button onclick="">Multiple send</button>
+            <button onclick="">Stop Multiple Send</button>
         </form>
     </div>
     <script type="text/javascript">
