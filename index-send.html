@@ -11,13 +11,13 @@
 
 <body>
     <div>
-        <form action="/send-message" method="POST">
+        <form class="myform" action="/send-message" method="POST">
             <h3>Send Message</h3>
             <div class="form-group">
                 <label for="sender">Sender id:</label>
                 <select id="sender" name="sender" type="sender">
-                <option name="sender" type="sender" value="">-- Select --</option>
                 <option name="sender" type="sender" value="123">123</option>
+                <option name="sender" type="sender" value="">-- Select --</option>
                  </select>
             </div>
             <div class="form-group">
@@ -28,33 +28,9 @@
                 <label for="message">Message:</label>
                 <input type="message" name="message" class="form-control" />
             </div>
-            <input type="submit" name="" value="Send" />
-            <button onclick="">Multiple send</button>
-            <button onclick="">Stop Multiple Send</button>
+            <input type="submit" id="send" name="" value="Send" />
         </form>
     </div>
-    <script type="text/javascript">
-        function readTextFile(file, callback) {
-            var rawFile = new XMLHttpRequest();
-            rawFile.overrideMimeType("application/json");
-            rawFile.open("GET", file, true);
-            rawFile.onreadystatechange = function() {
-                if (rawFile.readyState === 4 && rawFile.status == "200") {
-                    callback(rawFile.responseText);
-                }
-            }
-            rawFile.send(null);
-        }
-
-        readTextFile("./whatsapp-sessions.json", function(text) {
-            var sid = JSON.parse(text);
-            var ele = document.getElementById('sender');
-            for (var i = 0; i < sid.length; i++) {
-                if (sid[i]['ready'] === false) continue;
-                ele.innerHTML = ele.innerHTML + '<option value="' + sid[i]['id'] + '">' + sid[i]['id'] + '</option>';
-            }
-        });
-    </script>
 </body>
 
 </html>

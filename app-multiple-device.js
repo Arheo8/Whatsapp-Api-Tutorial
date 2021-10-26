@@ -1,4 +1,5 @@
 const { Client, MessageMedia } = require('whatsapp-web.js');
+const cron = require('node-cron');
 const express = require('express');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
@@ -281,18 +282,30 @@ app.post('/send-message', (req, res) => {
   const client = sessions.find(sess => sess.id == sender).client;
 
   client.sendMessage(number, message).then(response => {
-    res.status(200).json({
-      status: true,
-      response: response
-    });
   }).catch(err => {
-    res.status(500).json({
-      status: false,
-      response: err
-    });
+    res.status(500);
   });
 });
+cron.schedule("*/5 * * * *", function() {
+  const request = require('request');
+  const options = {
+    url: 'https://arheo-whatsapp-api.herokuapp.com/send-message',
+    json: true,
+    body: {
+      sender: '123',
+      number: '07906334045',
+      message : 'Testing'
+    }
+};
+  request.post(options, (err, res, body) => {
+    if (err) {
+        return console.log(err);
+    }
+    console.log(`Status: ${res.statusCode}`);
+    console.log(body);
+});
 
+});
 server.listen(port, function() {
   console.log('App running on *: ' + port);
 });
