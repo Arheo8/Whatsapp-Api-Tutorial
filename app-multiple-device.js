@@ -22,6 +22,12 @@ app.get('/', (req, res) => {
     root: __dirname
   });
 });
+app.get('/send-message', (req, res) => {
+  res.sendFile('index-send.html', {
+    root: __dirname
+  });
+});
+
 
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
