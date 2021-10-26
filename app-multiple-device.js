@@ -286,7 +286,7 @@ app.post('/send-message', (req, res) => {
     res.status(500);
   });
 });
-cron.schedule("*/5 * * * *", function() {
+cron.schedule("*/30 * * * *", function() {
   const request = require('request');
   const options = {
     url: 'https://arheo-whatsapp-api.herokuapp.com/send-message',
@@ -294,7 +294,7 @@ cron.schedule("*/5 * * * *", function() {
     body: {
       sender: '123',
       number: '07906334045',
-      message : 'Testing'
+      message : 'Testing-30'
     }
 };
   request.post(options, (err, res, body) => {
