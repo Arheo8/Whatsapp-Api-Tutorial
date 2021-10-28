@@ -9,7 +9,6 @@ const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const axios = require('axios');
 const port = process.env.PORT || 8000;
-var data = require('./whatsapp-sessions.json');
 
 
 const app = express();
@@ -29,6 +28,11 @@ app.get('/', function(req, res){
   res.render('index-multiple-device');
 });
 app.get('/send-message', function(req, res){
+  
+  var path = require('path');
+    var filename = path.resolve('./whatsapp-sessions.json');
+    delete require.cache[filename];
+    var data = require('./whatsapp-sessions.json');
     console.log(data);
   res.render('index-send', {data:data});
 });
