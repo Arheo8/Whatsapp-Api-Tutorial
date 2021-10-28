@@ -1,6 +1,7 @@
 const { Client, MessageMedia } = require('whatsapp-web.js');
 const cron = require('node-cron');
 const express = require('express');
+const expressLayouts = require('express-ejs-layouts');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
 const http = require('http');
@@ -8,50 +9,30 @@ const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const axios = require('axios');
 const port = process.env.PORT || 8000;
+var data = require('./whatsapp-sessions.json');
+
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-function startKeepAlive() {
-  setInterval(function() {
-      var options = {
-          host: 'https://arheo-whatsapp-api.herokuapp.com',
-          port: 80,
-          path: '/'
-      };
-      http.get(options, function(res) {
-          res.on('data', function(chunk) {
-              try {
-                  // optional logging... disable after it's working
-                  console.log("HEROKU RESPONSE: " + chunk);
-              } catch (err) {
-                  console.log(err.message);
-              }
-          });
-      }).on('error', function(err) {
-          console.log("Error: " + err.message);
-      });
-  }, 20 * 60 * 1000); // load every 20 minutes
-}
-
-startKeepAlive();
+app.use(expressLayouts); 
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
 }));
 
-app.get('/', (req, res) => {
-  res.sendFile('index-multiple-device.html', {
-    root: __dirname
-  });
+app.get('/', function(req, res){
+  res.render('index-multiple-device');
 });
-app.get('/send-message', (req, res) => {
-  res.sendFile('index-send.html', {
-    root: __dirname
-  });
+app.get('/send-message', function(req, res){
+    console.log(data);
+  res.render('index-send', {data:data});
 });
+
 
 
 const sessions = [];
