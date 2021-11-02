@@ -82,10 +82,10 @@ app.get('/dashboard', ensureAuthenticated, function(req, res){
 app.get('/send-message', ensureAuthenticated, function(req, res){
   
   var path = require('path');
-    var filename = path.resolve('./whatsapp-sessions.json');
-    delete require.cache[filename];
-    var data = require('./whatsapp-sessions.json');
-    console.log(data);
+  var filename = path.resolve('./whatsapp-sessions.json');
+  delete require.cache[filename];
+  var data = require('./whatsapp-sessions.json');
+  console.log(data);
   res.render('index-send', {data:data, user: req.user,});
 });
 
@@ -119,7 +119,7 @@ const getSessionsFile = function() {
   return JSON.parse(fs.readFileSync(SESSIONS_FILE));
 }
 
-const createSession = function(id, description) {
+const createSession = function(id, description, username) {
   console.log('Creating session: ' + id);
   const SESSION_FILE_PATH = `./whatsapp-session-${id}.json`;
   let sessionCfg;
@@ -202,6 +202,7 @@ const createSession = function(id, description) {
   sessions.push({
     id: id,
     description: description,
+    username: username,
     client: client
   });
 
@@ -213,6 +214,7 @@ const createSession = function(id, description) {
     savedSessions.push({
       id: id,
       description: description,
+      username: username,
       ready: false,
     });
     setSessionsFile(savedSessions);
@@ -227,7 +229,7 @@ const init = function(socket) {
       socket.emit('init', savedSessions);
     } else {
       savedSessions.forEach(sess => {
-        createSession(sess.id, sess.description);
+        createSession(sess.id, sess.description, sess.username);
       });
     }
   }
@@ -241,7 +243,7 @@ io.on('connection', function(socket) {
 
   socket.on('create-session', function(data) {
     console.log('Create session: ' + data.id);
-    createSession(data.id, data.description);
+    createSession(data.id, data.description, data.username);
   });
 });
 
