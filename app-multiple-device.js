@@ -24,7 +24,7 @@ dotenv.config({ path: path.resolve(__dirname, './.env') });
 require('./config/passport')(passport);
 
 // DB Config
-const db = process.env.MONGOURI;
+const db = "mongodb+srv://Arheo_pj:QCbuRzvzK6Nc2ZZ@cluster0.sgnjk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
 // Connect to MongoDB
 mongoose
