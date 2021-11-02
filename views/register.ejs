@@ -1,0 +1,23 @@
+<section>
+    <div class="container">
+        <div class="user">
+            <div class="formBx">
+                <form action="/users/register" method="POST">
+                    <h2>Create an account</h2>
+                    <%- include ("./partials/messages") %>
+                        <div class="form-group"><input type="name" id="name" name="name" class="form-control" placeholder="Enter Name" value="<%= typeof name != 'undefined' ? name : '' %>" required tabIndex="1" autofocus /></div>
+                        <div class="form-group"><input type="username" id="username" name="username" class="form-control" placeholder="Enter Username" value="<%= typeof username != 'undefined' ? username : '' %>" required tabIndex="2" /></div>
+                        <div class="form-group"><input type="number" id="number" name="number" class="form-control" placeholder="Enter Number" value="<%= typeof number != 'undefined' ? number : '' %>" required tabIndex="3" /></div>
+                        <div class="form-group"><input type="password" id="password" name="password" class="form-control" placeholder="Create Password" value="<%= typeof password != 'undefined' ? password : '' %>" required tabIndex="4" /></div>
+                        <div class="form-group"><input type="password" id="password2" name="password2" class="form-control" placeholder="Confirm Password" value="<%= typeof password2 != 'undefined' ? password2 : '' %>" required tabIndex="5" /></div><input type="submit" name=""
+                            value="Sign Up" />
+                        <p class="signup">Already have an account ? <a href="/users/login">Sign in.</a></p>
+                </form>
+            </div>
+            <div class="imgBx"><img src="https://images.pexels.com/photos/4588055/pexels-photo-4588055.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="" /></div>
+        </div>
+    </div>
+</section>
+<script type="username">$(document).on('keypress', 'input,select', function(e) { if (e.which==13) { e.preventDefault(); var $next=$('[tabIndex=' + (+this.tabIndex + 1) + ']'); console.log($next.length); if (!$next.length) { $next=$('[tabIndex=1]'); } $next.focus().click(); }
+    } );
+</script>

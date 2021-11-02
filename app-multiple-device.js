@@ -9,11 +9,31 @@ const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
 const axios = require('axios');
 const port = process.env.PORT || 8000;
-
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const passport = require('passport');
+const session = require('express-session');
+const flash = require('connect-flash');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+
+const path = require('path');
+dotenv.config({ path: path.resolve(__dirname, './.env') });
+require('./config/passport')(passport);
+
+// DB Config
+const db = process.env.MONGOURI;
+
+// Connect to MongoDB
+mongoose
+  .connect(
+    db,
+    { useNewUrlParser: true ,useUnifiedTopology: true}
+  )
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
 
 app.use(expressLayouts); 
 app.set('view engine', 'ejs');
@@ -24,20 +44,52 @@ app.use(express.urlencoded({
   extended: true
 }));
 
-app.get('/', function(req, res){
-  res.render('index-multiple-device');
+// Express session
+app.use(
+  session({
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true
+  })
+);
+
+// Connect flash
+app.use(flash());
+
+// Global variables
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  next();
 });
-app.get('/send-message', function(req, res){
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+const { ensureAuthenticated, forwardAuthenticated } = require("./config/auth");
+
+// Welcome Page
+app.get("/", forwardAuthenticated, (req, res) => res.render('register'));
+
+app.get('/dashboard', ensureAuthenticated, function(req, res){
+  res.render('index-multiple-device',
+  {
+    user: req.user,
+  });
+});
+app.get('/send-message', ensureAuthenticated, function(req, res){
   
   var path = require('path');
     var filename = path.resolve('./whatsapp-sessions.json');
     delete require.cache[filename];
     var data = require('./whatsapp-sessions.json');
     console.log(data);
-  res.render('index-send', {data:data});
+  res.render('index-send', {data:data, user: req.user,});
 });
 
-
+app.use('/users', require('./routes/users.js'));
 
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
