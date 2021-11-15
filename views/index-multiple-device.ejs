@@ -1,27 +1,36 @@
-<div id="app">
-    <h1>Whatsapp API</h1>
-    <p>Powered by AlgoSales</p>
-    <div class="form-container">
-        <label for="client-id">ID</label><br>
-        <input type="text" id="client-id" placeholder="Person ID">
-        <br><br>
-        <label for="client-description">Description</label><br>
-        <textarea rows="3" id="client-description" placeholder="Type Description"></textarea>
-        <br><br>
-        <button class="add-client-btn">Add Client</button>
-    </div>
-    <hr>
-    <div class="client-container">
-        <div class="client hide">
-            <h3 class="title"></h3>
-            <p class="description"></p>
-            <img src="" alt="QR Code" class="qrimage" id="qrcode">
-            <h3>Logs:</h3>
-            <ul class="logs"></ul>
+<div class="container">
+    <div class=" user ">
+        <div class="container m-0 p-0 mecl ">
+            <div id="app">
+
+                <a class="btn btn-dark my-2 my-sm-0 " style="float: right; " href="/users/logout ">Logout</a>
+                <h1>Whatsapp API</h1>
+                <p>Powered by AlgoSales</p>
+                <div class="form-container">
+                    <label for="client-id">ID</label><br>
+                    <input type="text" id="client-id" placeholder="Person ID" required>
+                    <br><br>
+                    <label for="client-description">Description</label><br>
+                    <textarea rows="3" id="client-description" placeholder="Type Description" required></textarea>
+                    <br><br>
+                    <button class="add-client-btn">Add Client</button>
+                </div>
+                <hr>
+                <div class="client-container">
+                    <div class="client hide">
+                        <h3 class="title"></h3>
+                        <p class="description"></p>
+                        <img src="" alt="QR Code" class="qrimage" id="qrcode">
+                        <h3>Logs:</h3>
+                        <ul class="logs"></ul>
+                    </div>
+                </div>
+
+                <a href="/send-message">Send Message</a>
+                <a href="/send-media">Send Media</a>
+            </div>
         </div>
     </div>
-
-    <a href="/send-message">Send Message</a>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -32,13 +41,16 @@
 
         // Ketika button tambah diklik
         $('.add-client-btn').click(function() {
+            // window.location.reload();
             var clientId = $('#client-id').val();
             var clientDescription = $('#client-description').val();
             var clientUsername = <%- JSON.stringify(user.username) %>;
+            clientId = clientId + '-' + clientUsername;
             var template = $('.client').first().clone()
                 .removeClass('hide')
                 .addClass(clientId);
-            template.find('.title').html(clientId);
+            var cId = clientId.replace('-' + clientUsername, '');
+            template.find('.title').html(cId);
             var newid = "qrcode" + String(clientId)
             template.find('.qrimage').attr("id", newid);
             template.find('.description').html(clientDescription);
@@ -63,10 +75,12 @@
                 var uname = <%- JSON.stringify(user.username) %>;
                 console.log(uname + " " + clientUsername);
                 if (clientUsername !== uname) continue;
+                //if (session.ready === false) continue;
                 var template = $('.client').first().clone()
                     .removeClass('hide')
                     .addClass(clientId);
-                template.find('.title').html(clientId);
+                var cId = clientId.replace('-' + clientUsername, '');
+                template.find('.title').html(cId);
                 var newid = "qrcode" + String(clientId)
                 template.find('.qrimage').attr("id", newid);
                 template.find('.description').html(clientDescription);

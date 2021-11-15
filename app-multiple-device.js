@@ -1,12 +1,14 @@
 const { Client, MessageMedia } = require('whatsapp-web.js');
 const cron = require('node-cron');
 const express = require('express');
+const { body, validationResult } = require('express-validator');
 const expressLayouts = require('express-ejs-layouts');
 const socketIO = require('socket.io');
 const qrcode = require('qrcode');
 const http = require('http');
 const fs = require('fs');
 const { phoneNumberFormatter } = require('./helpers/formatter');
+const fileUpload = require('express-fileupload');
 const axios = require('axios');
 const port = process.env.PORT || 8000;
 const dotenv = require('dotenv');
@@ -42,6 +44,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
+}));
+app.use(fileUpload({
+  debug: true
 }));
 
 // Express session
@@ -87,6 +92,16 @@ app.get('/send-message', ensureAuthenticated, function(req, res){
   var data = require('./whatsapp-sessions.json');
   console.log(data);
   res.render('index-send', {data:data, user: req.user,});
+});
+
+app.get('/send-media', ensureAuthenticated, function(req, res){
+  
+  var path = require('path');
+  var filename = path.resolve('./whatsapp-sessions.json');
+  delete require.cache[filename];
+  var data = require('./whatsapp-sessions.json');
+  console.log(data);
+  res.render('index-send-media', {data:data, user: req.user,});
 });
 
 app.use('/users', require('./routes/users.js'));
@@ -293,50 +308,91 @@ io.on('connection', function(socket) {
 // Send message
 
 
-app.post('/send-media', async (req, res) => {
+app.post('/send-media',[
+  body('number').notEmpty(),
+], async (req, res) => {
+  const errors = validationResult(req).formatWith(({
+    msg
+  }) => {
+    return msg;
+  });
+
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: false,
+      message: errors.mapped()
+    });
+  }
   const sender = req.body.sender;
   const number = phoneNumberFormatter(req.body.number);
   const caption = req.body.caption;
-  const fileUrl = req.body.file;
-  var fileName = req.body.filename;
-  if(String(fileName) == String("undefined")){
-    fileName = "Media";
-  }
+
+  // const fileUrl = req.body.file;
+  // var fileName = req.body.filename;
+  // if(String(fileName) == String("undefined")){
+  //   fileName = "Media";
+  // }
 
   const client = sessions.find(sess => sess.id == sender).client;
   // const media = MessageMedia.fromFilePath('./image-example.png');
-  // const file = req.files.file;
-  // const media = new MessageMedia(file.mimetype, file.data.toString('base64'), file.name);
-  let mimetype;
-  const attachment = await axios.get(fileUrl, {
-    responseType: 'arraybuffer'
-  }).then(response => {
-    mimetype = response.headers['content-type'];
-    return response.data.toString('base64');
-  });
+  const file = req.files.filename;
+  const media = new MessageMedia(file.mimetype, file.data.toString('base64'), file.name);
+  // let mimetype;
+  // const attachment = await axios.get(fileUrl, {
+  //   responseType: 'arraybuffer'
+  // }).then(response => {
+  //   mimetype = response.headers['content-type'];
+  //   return response.data.toString('base64');
+  // });
 
-  const media = new MessageMedia(mimetype, attachment, fileName);
+  // const media = new MessageMedia(mimetype, attachment, fileName);
+  console.log(media)
 
-  client.sendMessage(number, media, {
-    caption: caption
-  }).then(response => {
-    res.status(200).json({
-      status: true,
-      response: response
-    });
-  }).catch(err => {
-    res.status(500).json({
-      status: false,
-      response: err
-    });
-  });
+  client.isRegisteredUser(String(number)).then(function(isRegistered) {
+    if(isRegistered) {
+      client.sendMessage(number, media, {
+        caption: caption
+      }).then(response => {
+        res.status(200).json({
+          status: true,
+          response: response
+        });
+      }).catch(err => {
+        res.status(500).json({
+          status: false,
+          response: err
+        });
+      });
+    }
+    else
+    {
+      return res.status(422).json({
+        status: false,
+        message: 'The number is not registered'
+      });
+    }
+})  
+
 });
 
 
 
+app.post('/send-message',[
+  body('number').notEmpty(),
+  body('message').notEmpty(),
+], async (req, res) => {
+  const errors = validationResult(req).formatWith(({
+    msg
+  }) => {
+    return msg;
+  });
 
-
-app.post('/send-message', (req, res) => {
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: false,
+      message: errors.mapped()
+    });
+  }
   console.log("sendmessage",req.body)
   const sender = req.body.sender;
   const number = phoneNumberFormatter(req.body.number);
@@ -344,31 +400,47 @@ app.post('/send-message', (req, res) => {
 
   const client = sessions.find(sess => sess.id == sender).client;
 
-  client.sendMessage(number, message).then(response => {
-  }).catch(err => {
-    res.status(500);
-  });
-});
-cron.schedule("*/30 * * * *", function() {
-  const request = require('request');
-  const options = {
-    url: 'https://arheo-whatsapp-api.herokuapp.com/send-message',
-    json: true,
-    body: {
-      sender: '123',
-      number: '07906334045',
-      message : 'Testing-30'
+  client.isRegisteredUser(String(number)).then(function(isRegistered) {
+    if(isRegistered) {
+      client.sendMessage(number, message).then(response => {
+        res.status(200).json({
+          status: true,
+          response: response
+        });
+      }).catch(err => {
+        res.status(500);
+      });
     }
-};
-  request.post(options, (err, res, body) => {
-    if (err) {
-        return console.log(err);
+    else
+    {
+      return res.status(422).json({
+        status: false,
+        message: 'The number is not registered'
+      });
     }
-    console.log(`Status: ${res.statusCode}`);
-    console.log(body);
+})  
 });
 
-});
+// cron.schedule("*/30 * * * *", function() {
+//   const request = require('request');
+//   const options = {
+//     url: 'https://arheo-whatsapp-api.herokuapp.com/send-message',
+//     json: true,
+//     body: {
+//       sender: '123',
+//       number: '07906334045',
+//       message : 'Testing-30'
+//     }
+// };
+//   request.post(options, (err, res, body) => {
+//     if (err) {
+//         return console.log(err);
+//     }
+//     console.log(`Status: ${res.statusCode}`);
+//     console.log(body);
+// });
+
+// });
 server.listen(port, function() {
   console.log('App running on *: ' + port);
 });
