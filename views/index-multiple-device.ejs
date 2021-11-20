@@ -3,7 +3,7 @@
         <div class="container m-0 p-0 mecl ">
             <div id="app">
 
-                <a class="btn btn-dark my-2 my-sm-0 " style="float: right; " href="/users/logout ">Logout</a>
+                <a class="btn btn-dark my-2 my-sm-0" style="float: right;" href="/users/logout">Logout</a>
                 <h1>Whatsapp API</h1>
                 <p>Powered by AlgoSales</p>
                 <div class="form-container">
@@ -26,8 +26,8 @@
                     </div>
                 </div>
 
-                <a href="/send-message">Send Message</a>
-                <a href="/send-media">Send Media</a>
+                <a class="btn btn-dark my-2 my-sm-0" href="/send-message">Send Message</a>
+                <a class="btn btn-dark my-2 my-sm-0" href="/send-media">Send Media</a>
             </div>
         </div>
     </div>
@@ -54,12 +54,16 @@
             var newid = "qrcode" + String(clientId)
             template.find('.qrimage').attr("id", newid);
             template.find('.description').html(clientDescription);
-            $('.client-container').append(template);
-
             socket.emit('create-session', {
                 id: clientId,
                 description: clientDescription,
                 username: clientUsername
+            });
+            socket.on('add-template', function() {
+                $('.client-container').append(template);
+            });
+            socket.on('already-there', function(id) {
+                alert("ID already there!");
             });
         });
 
@@ -85,7 +89,9 @@
                 template.find('.qrimage').attr("id", newid);
                 template.find('.description').html(clientDescription);
                 $('.client-container').append(template);
+                socket.on('add-template', function() {
 
+                });
                 if (session.ready) {
                     $(`.client.${session.id} .logs`).append($('<li>').text('Whatsapp is ready!'));
                 } else {

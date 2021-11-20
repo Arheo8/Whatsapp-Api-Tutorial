@@ -143,6 +143,7 @@ const createSession = function(id, description, username) {
   }
 
   const client = new Client({
+    qrTimeoutMs: 0,
     restartOnAuthFail: true,
     puppeteer: {
       headless: true,
@@ -233,6 +234,10 @@ const createSession = function(id, description, username) {
       ready: false,
     });
     setSessionsFile(savedSessions);
+    io.emit('add-template');
+  }
+  else {
+    io.emit('already-there');
   }
 }
 
@@ -421,26 +426,6 @@ app.post('/send-message',[
 })  
 });
 
-// cron.schedule("*/30 * * * *", function() {
-//   const request = require('request');
-//   const options = {
-//     url: 'https://arheo-whatsapp-api.herokuapp.com/send-message',
-//     json: true,
-//     body: {
-//       sender: '123',
-//       number: '07906334045',
-//       message : 'Testing-30'
-//     }
-// };
-//   request.post(options, (err, res, body) => {
-//     if (err) {
-//         return console.log(err);
-//     }
-//     console.log(`Status: ${res.statusCode}`);
-//     console.log(body);
-// });
-
-// });
 server.listen(port, function() {
   console.log('App running on *: ' + port);
 });
